@@ -1,6 +1,8 @@
-name: Check
+name: Проверка графика экзаменов
 
 on:
+  schedule:
+    - cron: "*/10 * * * *"
   workflow_dispatch:
 
 jobs:
