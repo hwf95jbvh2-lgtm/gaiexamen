@@ -1,21 +1,12 @@
 import requests
-from bs4 import BeautifulSoup
 
-URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/"
+URL = "https://госавтоинспекция.рф/upload/site25/division_service/link/Grafik_Iyul_vse.pdf"
 
-response = requests.get(
+r = requests.get(
     URL,
-    timeout=60,
-    headers={
-        "User-Agent": "Mozilla/5.0"
-    }
+    timeout=30,
+    headers={"User-Agent": "Mozilla/5.0"}
 )
 
-soup = BeautifulSoup(response.text, "html.parser")
-
-for link in soup.find_all("a"):
-    href = link.get("href")
-    text = link.text.strip()
-
-    if href:
-        print(text, "→", href)
+print("STATUS:", r.status_code)
+print("SIZE:", len(r.content))
