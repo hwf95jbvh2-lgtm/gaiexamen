@@ -1,7 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
+URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/"
 
 response = requests.get(
     URL,
