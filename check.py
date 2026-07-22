@@ -1,27 +1,21 @@
 import requests
+from bs4 import BeautifulSoup
 
 URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
-SEARCH = "График проведения экзаменов на Август 2026"
 
-import os
+response = requests.get(
+    URL,
+    timeout=60,
+    headers={
+        "User-Agent": "Mozilla/5.0"
+    }
+)
 
-BOT_TOKEN = os.getenv("BOT_TOKEN")
-CHAT_ID = "448539895"
+soup = BeautifulSoup(response.text, "html.parser")
 
-def send(text):
-    requests.post(
-        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-        data={
-            "chat_id": CHAT_ID,
-            "text": text
-        }
-    )
+for link in soup.find_all("a"):
+    href = link.get("href")
+    text = link.text.strip()
 
-
-page = requests.get(URL, timeout=30).text
-
-if SEARCH.lower() in page.lower():
-    send(f"✅ На сайте появился файл:\n\n{SEARCH}\n\n{URL}")
-    print("FOUND")
-else:
-    print("NOT FOUND")
+    if href:
+        print(text, "→", href)
