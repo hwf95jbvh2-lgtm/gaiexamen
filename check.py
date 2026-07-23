@@ -14,34 +14,43 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
 
-print("BOT TOKEN:", bool(BOT_TOKEN), flush=True)
+print("BOT TOKEN EXISTS:", bool(BOT_TOKEN), flush=True)
 print("CHAT ID:", CHAT_ID, flush=True)
 
 
 def send_message(text):
 
-    if not BOT_TOKEN or not CHAT_ID:
-        print("Telegram settings missing", flush=True)
+    if not BOT_TOKEN:
+        print("ERROR: BOT_TOKEN missing", flush=True)
+        return
+
+    if not CHAT_ID:
+        print("ERROR: CHAT_ID missing", flush=True)
         return
 
     try:
-        response = requests.post(
+
+        print("SENDING TELEGRAM...", flush=True)
+
+        r = requests.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
             json={
                 "chat_id": CHAT_ID,
                 "text": text
             },
-            timeout=15
+            timeout=10
         )
 
         print(
-            "TELEGRAM STATUS:",
-            response.status_code,
-            response.text,
+            "TELEGRAM RESPONSE:",
+            r.status_code,
+            r.text,
             flush=True
         )
 
+
     except Exception as e:
+
         print(
             "TELEGRAM ERROR:",
             e,
@@ -53,16 +62,22 @@ def load_files():
 
     if os.path.exists(STATE_FILE):
 
-        with open(
-            STATE_FILE,
-            "r",
-            encoding="utf-8"
-        ) as f:
+        try:
 
-            return json.load(f).get(
-                "files",
-                []
-            )
+            with open(
+                STATE_FILE,
+                "r",
+                encoding="utf-8"
+            ) as f:
+
+                return json.load(f).get(
+                    "files",
+                    []
+                )
+
+        except Exception:
+
+            return []
 
     return []
 
@@ -85,6 +100,12 @@ def save_files(files):
         )
 
 
+# Проверка Telegram при старте
+send_message(
+    "✅ Бот запущен. Проверка связи."
+)
+
+
 while True:
 
     print(
@@ -92,16 +113,15 @@ while True:
         flush=True
     )
 
-    send_message("🔔 Тестовое сообщение от бота")
 
     try:
 
         response = requests.get(
             URL,
-            timeout=120,
             headers={
                 "User-Agent": "Mozilla/5.0"
-            }
+            },
+            timeout=120
         )
 
 
@@ -185,7 +205,7 @@ while True:
             for file in new_files:
 
                 message += (
-                    f"• {file['name']}\n"
+                    f"{file['name']}\n"
                     f"{file['url']}\n\n"
                 )
 
