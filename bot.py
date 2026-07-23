@@ -5,8 +5,7 @@ import time
 print("НОВЫЙ BOT.PY ЗАПУЩЕН", flush=True)
 
 
-BOT_TOKEN = "8870192962:AAFAh2V8pyVAI65EEWz5JEuKbdH37IrzLlI
-"
+BOT_TOKEN = "8870192962:AAFAh2V8pyVAI65EEWz5JEuKbdH37IrzLlI"
 
 CHAT_ID = "8870192962"
 
