@@ -14,56 +14,88 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
 
+print(
+    "BOT TOKEN SET:",
+    bool(BOT_TOKEN),
+    "CHAT ID:",
+    CHAT_ID,
+    flush=True
+)
+
+
 def send_message(text):
+
     if not BOT_TOKEN or not CHAT_ID:
-        print("Telegram settings missing", flush=True)
+        print(
+            "Telegram settings missing",
+            flush=True
+        )
         return
 
-    try:
-        response = requests.post(
-            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-            json={
-                "chat_id": CHAT_ID,
-                "text": text
-            },
-            timeout=10
-        )
+    for attempt in range(3):
 
-        print(
-            "TELEGRAM STATUS:",
-            response.status_code,
-            flush=True
-        )
+        try:
 
-    except Exception as e:
-        print(
-            "TELEGRAM ERROR:",
-            e,
-            flush=True
-        )
+            response = requests.post(
+                f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                json={
+                    "chat_id": CHAT_ID,
+                    "text": text
+                },
+                timeout=15
+            )
+
+            print(
+                "TELEGRAM STATUS:",
+                response.status_code,
+                flush=True
+            )
+
+            return
+
+        except Exception as e:
+
+            print(
+                f"TELEGRAM ERROR attempt {attempt + 1}:",
+                e,
+                flush=True
+            )
+
+            time.sleep(10)
 
 
 def load_files():
+
     if os.path.exists(STATE_FILE):
+
         try:
+
             with open(
                 STATE_FILE,
                 "r",
                 encoding="utf-8"
             ) as f:
-                return json.load(f).get("files", [])
+
+                return json.load(f).get(
+                    "files",
+                    []
+                )
+
         except Exception:
+
             return []
 
     return []
 
 
 def save_files(files):
+
     with open(
         STATE_FILE,
         "w",
         encoding="utf-8"
     ) as f:
+
         json.dump(
             {
                 "files": files
@@ -76,17 +108,21 @@ def save_files(files):
 
 def check_site():
 
-    print("START CHECK", flush=True)
+    print(
+        "START CHECK",
+        flush=True
+    )
 
     try:
 
         response = requests.get(
             URL,
-            timeout=60,
+            timeout=120,
             headers={
                 "User-Agent": "Mozilla/5.0"
             }
         )
+
 
         print(
             "SITE STATUS:",
@@ -94,12 +130,15 @@ def check_site():
             flush=True
         )
 
+
         soup = BeautifulSoup(
             response.text,
             "html.parser"
         )
 
+
         current_files = []
+
 
         for link in soup.find_all(
             "a",
@@ -107,6 +146,7 @@ def check_site():
         ):
 
             href = link["href"]
+
 
             if any(
                 ext in href.lower()
@@ -121,8 +161,11 @@ def check_site():
 
                 name = link.text.strip()
 
+
                 if not name:
+
                     name = href.split("/")[-1]
+
 
                 current_files.append(
                     {
@@ -137,10 +180,12 @@ def check_site():
 
         old_files = load_files()
 
+
         old_urls = {
             x["url"]
             for x in old_files
         }
+
 
         current_urls = {
             x["url"]
@@ -161,13 +206,17 @@ def check_site():
                 "📄 Новые файлы на сайте ГИБДД:\n\n"
             )
 
+
             for file in new_files:
+
                 message += (
                     f"• {file['name']}\n"
                     f"{file['url']}\n\n"
                 )
 
+
             send_message(message)
+
 
             print(
                 "NEW FILES SENT",
@@ -180,6 +229,7 @@ def check_site():
             send_message(
                 "♻️ На сайте ГИБДД изменились файлы"
             )
+
 
             print(
                 "UPDATE SENT",
