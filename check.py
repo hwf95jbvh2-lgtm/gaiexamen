@@ -1,53 +1,71 @@
 import requests
+from bs4 import BeautifulSoup
 import json
-import os
 import time
+import os
 
-URL = "https://госавтоинспекция.рф/upload/site25/division_service/link/Grafik_Iyul_vse.pdf"
+URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
 
 STATE_FILE = "files.json"
 
 
-def load_state():
+def load_files():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    return {"files": {}}
+            return json.load(f).get("files", [])
+    return []
 
 
-def save_state(data):
+def save_files(files):
     with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(data, f, ensure_ascii=False, indent=2)
+        json.dump(
+            {"files": files},
+            f,
+            ensure_ascii=False,
+            indent=2
+        )
 
 
 while True:
     print("START CHECK", flush=True)
 
-    old_state = load_state()
-
     try:
         r = requests.get(
             URL,
             timeout=60,
-            headers={"User-Agent": "Mozilla/5.0"}
+            headers={
+                "User-Agent": "Mozilla/5.0"
+            }
         )
 
-        size = len(r.content)
-
         print("STATUS:", r.status_code, flush=True)
-        print("SIZE:", size, flush=True)
 
-        new_state = {
-            "files": {
-                "Grafik_Iyul_vse.pdf": {
-                    "size": size
-                }
-            }
-        }
+        soup = BeautifulSoup(r.text, "html.parser")
 
-        if old_state != new_state:
+        files = []
+
+        for link in soup.find_all("a", href=True):
+            href = link["href"]
+
+            if any(
+                ext in href.lower()
+                for ext in [".pdf", ".doc", ".docx", ".xls", ".xlsx"]
+            ):
+                files.append(href)
+
+        files = sorted(files)
+
+        print("FILES FOUND:", len(files), flush=True)
+
+        old_files = load_files()
+
+        if files != old_files:
             print("CHANGE DETECTED", flush=True)
-            save_state(new_state)
+            print("OLD:", old_files, flush=True)
+            print("NEW:", files, flush=True)
+
+            save_files(files)
+
         else:
             print("NO CHANGES", flush=True)
 
