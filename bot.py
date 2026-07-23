@@ -5,9 +5,10 @@ import time
 print("НОВЫЙ BOT.PY ЗАПУЩЕН", flush=True)
 
 
-BOT_TOKEN = "ТВОЙ_ТОКЕН_БОТА"
+BOT_TOKEN = "8870192962:AAFAh2V8pyVAI65EEWz5JEuKbdH37IrzLlI
+"
 
-CHAT_ID = "ТВОЙ_CHAT_ID"
+CHAT_ID = "8870192962"
 
 
 def send_message(text):
