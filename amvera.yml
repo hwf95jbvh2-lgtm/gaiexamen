@@ -1,18 +1,11 @@
 meta:
   toolchain:
     name: python
-    version: "3.12"
+    version: "3.11"
 
-build:
-  commands:
-    - pip install -r requirements.txt
+  environment:
+    - BOT_TOKEN
+    - CHAT_ID
 
 run:
   command: python check.py
-
-env:
-  - name: BOT_TOKEN
-    secret: true
-
-  - name: CHAT_ID
-    secret: true
