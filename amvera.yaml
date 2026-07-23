@@ -1,12 +1,14 @@
 meta:
-  version: 1
+  environment: python
   toolchain:
-    name: python
-  environment:
-    PYTHON_VERSION: "3.11"
+    name: pip
+    version: "3.11"
 
 build:
   requirementsPath: requirements.txt
+  useCache: true
 
 run:
+  persistenceMount: /data
   scriptName: check.py
+  containerPort: 80
