@@ -13,3 +13,6 @@ run:
 env:
   - name: BOT_TOKEN
     secret: true
+
+  - name: CHAT_ID
+    secret: true
