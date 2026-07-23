@@ -1,0 +1,12 @@
+meta:
+  version: 1
+  toolchain:
+    name: python
+  environment:
+    PYTHON_VERSION: "3.11"
+
+build:
+  requirementsPath: requirements.txt
+
+run:
+  scriptName: check.py
