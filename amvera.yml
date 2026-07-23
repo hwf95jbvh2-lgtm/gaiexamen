@@ -1,8 +1,15 @@
 meta:
-  name: gai-ekzameny
+  toolchain:
+    name: python
+    version: "3.12"
 
 build:
-  dockerfile: Dockerfile
+  commands:
+    - pip install -r requirements.txt
 
 run:
   command: python check.py
+
+env:
+  - name: BOT_TOKEN
+    secret: true
