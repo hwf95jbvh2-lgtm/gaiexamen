@@ -7,7 +7,7 @@ print("НОВЫЙ BOT.PY ЗАПУЩЕН", flush=True)
 
 BOT_TOKEN = "8870192962:AAFAh2V8pyVAI65EEWz5JEuKbdH37IrzLlI"
 
-CHAT_ID = "8870192962"
+CHAT_ID = "448539895"
 
 
 def send_message(text):
