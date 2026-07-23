@@ -8,6 +8,26 @@ URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
 
 STATE_FILE = "files.json"
 
+BOT_TOKEN = os.getenv("BOT_TOKEN")
+CHAT_ID = os.getenv("CHAT_ID")
+
+
+def send_message(text):
+    if not BOT_TOKEN or not CHAT_ID:
+        print("Telegram settings missing", flush=True)
+        return
+
+    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
+
+    requests.post(
+        url,
+        json={
+            "chat_id": CHAT_ID,
+            "text": text
+        },
+        timeout=30
+    )
+
 
 def load_files():
     if os.path.exists(STATE_FILE):
@@ -27,6 +47,7 @@ def save_files(files):
 
 
 while True:
+
     print("START CHECK", flush=True)
 
     try:
@@ -38,9 +59,10 @@ while True:
             }
         )
 
-        print("STATUS:", r.status_code, flush=True)
-
-        soup = BeautifulSoup(r.text, "html.parser")
+        soup = BeautifulSoup(
+            r.text,
+            "html.parser"
+        )
 
         files = []
 
@@ -49,29 +71,46 @@ while True:
 
             if any(
                 ext in href.lower()
-                for ext in [".pdf", ".doc", ".docx", ".xls", ".xlsx"]
+                for ext in [
+                    ".pdf",
+                    ".doc",
+                    ".docx",
+                    ".xls",
+                    ".xlsx"
+                ]
             ):
                 files.append(href)
 
         files = sorted(files)
 
-        print("FILES FOUND:", len(files), flush=True)
-
         old_files = load_files()
 
+        print("FILES:", len(files), flush=True)
+
         if files != old_files:
-            print("CHANGE DETECTED", flush=True)
-            print("OLD:", old_files, flush=True)
-            print("NEW:", files, flush=True)
+
+            new_files = set(files) - set(old_files)
+
+            message = "Изменения на сайте ГИБДД:\n\n"
+
+            if new_files:
+                message += "Новые файлы:\n"
+                for f in new_files:
+                    message += f + "\n"
+
+            else:
+                message += "Изменились существующие файлы"
+
+            send_message(message)
 
             save_files(files)
+
+            print("MESSAGE SENT", flush=True)
 
         else:
             print("NO CHANGES", flush=True)
 
     except Exception as e:
         print("ERROR:", e, flush=True)
-
-    print("WAIT 1 HOUR", flush=True)
 
     time.sleep(3600)
