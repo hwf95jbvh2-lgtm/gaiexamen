@@ -6,6 +6,9 @@ import os
 from urllib.parse import urljoin
 
 
+print("VERSION TEST 23-07-15-30", flush=True)
+
+
 URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
 
 STATE_FILE = "files.json"
@@ -14,37 +17,58 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
 
-print("BOT TOKEN EXISTS:", bool(BOT_TOKEN), flush=True)
-print("CHAT ID:", CHAT_ID, flush=True)
+print(
+    "BOT TOKEN EXISTS:",
+    bool(BOT_TOKEN),
+    flush=True
+)
+
+print(
+    "CHAT ID:",
+    CHAT_ID,
+    flush=True
+)
 
 
 def send_message(text):
 
     if not BOT_TOKEN:
-        print("ERROR: BOT_TOKEN missing", flush=True)
+        print(
+            "BOT TOKEN MISSING",
+            flush=True
+        )
         return
 
     if not CHAT_ID:
-        print("ERROR: CHAT_ID missing", flush=True)
+        print(
+            "CHAT ID MISSING",
+            flush=True
+        )
         return
+
 
     try:
 
-        print("SENDING TELEGRAM...", flush=True)
+        print(
+            "SENDING TELEGRAM...",
+            flush=True
+        )
 
-        r = requests.post(
+
+        response = requests.post(
             f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
             json={
                 "chat_id": CHAT_ID,
                 "text": text
             },
-            timeout=10
+            timeout=15
         )
+
 
         print(
             "TELEGRAM RESPONSE:",
-            r.status_code,
-            r.text,
+            response.status_code,
+            response.text,
             flush=True
         )
 
@@ -58,6 +82,7 @@ def send_message(text):
         )
 
 
+
 def load_files():
 
     if os.path.exists(STATE_FILE):
@@ -68,9 +93,9 @@ def load_files():
                 STATE_FILE,
                 "r",
                 encoding="utf-8"
-            ) as f:
+            ) as file:
 
-                return json.load(f).get(
+                return json.load(file).get(
                     "files",
                     []
                 )
@@ -82,28 +107,31 @@ def load_files():
     return []
 
 
+
 def save_files(files):
 
     with open(
         STATE_FILE,
         "w",
         encoding="utf-8"
-    ) as f:
+    ) as file:
 
         json.dump(
             {
                 "files": files
             },
-            f,
+            file,
             ensure_ascii=False,
             indent=2
         )
 
 
-# Проверка Telegram при старте
+
+# тест Telegram при запуске
 send_message(
-    "✅ Бот запущен. Проверка связи."
+    "✅ Тест: бот запущен"
 )
+
 
 
 while True:
@@ -118,10 +146,10 @@ while True:
 
         response = requests.get(
             URL,
+            timeout=120,
             headers={
                 "User-Agent": "Mozilla/5.0"
-            },
-            timeout=120
+            }
         )
 
 
@@ -179,6 +207,7 @@ while True:
                 )
 
 
+
         old_files = load_files()
 
 
@@ -193,6 +222,7 @@ while True:
             for x in current_files
             if x["url"] not in old_urls
         ]
+
 
 
         if new_files:
@@ -241,6 +271,7 @@ while True:
             e,
             flush=True
         )
+
 
 
     print(
