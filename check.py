@@ -14,76 +14,55 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
 
 
-print(
-    "BOT TOKEN SET:",
-    bool(BOT_TOKEN),
-    "CHAT ID:",
-    CHAT_ID,
-    flush=True
-)
+print("BOT TOKEN:", bool(BOT_TOKEN), flush=True)
+print("CHAT ID:", CHAT_ID, flush=True)
 
 
 def send_message(text):
 
     if not BOT_TOKEN or not CHAT_ID:
-        print(
-            "Telegram settings missing",
-            flush=True
-        )
+        print("Telegram settings missing", flush=True)
         return
 
-    for attempt in range(3):
+    try:
+        response = requests.post(
+            f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id": CHAT_ID,
+                "text": text
+            },
+            timeout=15
+        )
 
-        try:
+        print(
+            "TELEGRAM STATUS:",
+            response.status_code,
+            response.text,
+            flush=True
+        )
 
-            response = requests.post(
-                f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
-                json={
-                    "chat_id": CHAT_ID,
-                    "text": text
-                },
-                timeout=15
-            )
-
-            print(
-                "TELEGRAM STATUS:",
-                response.status_code,
-                flush=True
-            )
-
-            return
-
-        except Exception as e:
-
-            print(
-                f"TELEGRAM ERROR attempt {attempt + 1}:",
-                e,
-                flush=True
-            )
-
-            time.sleep(10)
+    except Exception as e:
+        print(
+            "TELEGRAM ERROR:",
+            e,
+            flush=True
+        )
 
 
 def load_files():
 
     if os.path.exists(STATE_FILE):
 
-        try:
+        with open(
+            STATE_FILE,
+            "r",
+            encoding="utf-8"
+        ) as f:
 
-            with open(
-                STATE_FILE,
-                "r",
-                encoding="utf-8"
-            ) as f:
-
-                return json.load(f).get(
-                    "files",
-                    []
-                )
-
-        except Exception:
-
-            return []
+            return json.load(f).get(
+                "files",
+                []
+            )
 
     return []
 
@@ -106,7 +85,7 @@ def save_files(files):
         )
 
 
-def check_site():
+while True:
 
     print(
         "START CHECK",
@@ -187,12 +166,6 @@ def check_site():
         }
 
 
-        current_urls = {
-            x["url"]
-            for x in current_files
-        }
-
-
         new_files = [
             x
             for x in current_files
@@ -203,7 +176,7 @@ def check_site():
         if new_files:
 
             message = (
-                "📄 Новые файлы на сайте ГИБДД:\n\n"
+                "📄 Новые файлы ГИБДД:\n\n"
             )
 
 
@@ -215,24 +188,13 @@ def check_site():
                 )
 
 
-            send_message(message)
+            send_message(
+                message
+            )
 
 
             print(
                 "NEW FILES SENT",
-                flush=True
-            )
-
-
-        elif current_urls != old_urls:
-
-            send_message(
-                "♻️ На сайте ГИБДД изменились файлы"
-            )
-
-
-            print(
-                "UPDATE SENT",
                 flush=True
             )
 
@@ -253,19 +215,18 @@ def check_site():
     except Exception as e:
 
         print(
-            "CHECK ERROR:",
+            "ERROR:",
             e,
             flush=True
         )
 
-
-while True:
-
-    check_site()
 
     print(
         "WAIT 1 HOUR",
         flush=True
     )
 
-    time.sleep(3600)
+
+    time.sleep(
+        3600
+    )
