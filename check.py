@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 import json
 import time
 import os
+from urllib.parse import urljoin
 
 URL = "https://xn--80aebkobnwfcnsfk1e0h.xn--p1ai/svc/273"
 
@@ -17,10 +18,8 @@ def send_message(text):
         print("Telegram settings missing", flush=True)
         return
 
-    url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
-
     requests.post(
-        url,
+        f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
         json={
             "chat_id": CHAT_ID,
             "text": text
@@ -33,6 +32,7 @@ def load_files():
     if os.path.exists(STATE_FILE):
         with open(STATE_FILE, "r", encoding="utf-8") as f:
             return json.load(f).get("files", [])
+
     return []
 
 
@@ -51,7 +51,8 @@ while True:
     print("START CHECK", flush=True)
 
     try:
-        r = requests.get(
+
+        response = requests.get(
             URL,
             timeout=60,
             headers={
@@ -60,13 +61,14 @@ while True:
         )
 
         soup = BeautifulSoup(
-            r.text,
+            response.text,
             "html.parser"
         )
 
-        files = []
+        current_files = []
 
         for link in soup.find_all("a", href=True):
+
             href = link["href"]
 
             if any(
@@ -79,38 +81,89 @@ while True:
                     ".xlsx"
                 ]
             ):
-                files.append(href)
 
-        files = sorted(files)
+                name = link.text.strip()
+
+                if not name:
+                    name = href.split("/")[-1]
+
+                current_files.append({
+                    "name": name,
+                    "url": urljoin(URL, href)
+                })
+
 
         old_files = load_files()
 
-        print("FILES:", len(files), flush=True)
 
-        if files != old_files:
+        old_urls = {
+            x["url"] for x in old_files
+        }
 
-            new_files = set(files) - set(old_files)
+        current_urls = {
+            x["url"] for x in current_files
+        }
 
-            message = "Изменения на сайте ГИБДД:\n\n"
 
-            if new_files:
-                message += "Новые файлы:\n"
-                for f in new_files:
-                    message += f + "\n"
+        new_files = [
+            x for x in current_files
+            if x["url"] not in old_urls
+        ]
 
-            else:
-                message += "Изменились существующие файлы"
+
+        if new_files:
+
+            message = "📄 Новые файлы на сайте ГИБДД:\n\n"
+
+            for file in new_files:
+                message += (
+                    f"• {file['name']}\n"
+                    f"{file['url']}\n\n"
+                )
 
             send_message(message)
 
-            save_files(files)
+            print(
+                "NEW FILES SENT",
+                flush=True
+            )
 
-            print("MESSAGE SENT", flush=True)
+
+        elif current_urls != old_urls:
+
+            send_message(
+                "♻️ На сайте ГИБДД изменились файлы"
+            )
+
+            print(
+                "UPDATE SENT",
+                flush=True
+            )
+
 
         else:
-            print("NO CHANGES", flush=True)
+
+            print(
+                "NO CHANGES",
+                flush=True
+            )
+
+
+        save_files(current_files)
+
 
     except Exception as e:
-        print("ERROR:", e, flush=True)
+
+        print(
+            "ERROR:",
+            e,
+            flush=True
+        )
+
+
+    print(
+        "WAIT 1 HOUR",
+        flush=True
+    )
 
     time.sleep(3600)
