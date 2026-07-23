@@ -1,9 +1,11 @@
 meta:
-  version: 1
-  toolchain: python
+  version: "1"
+  toolchain:
+    name: python
 
 build:
   requirementsPath: requirements.txt
+  useCache: true
 
 run:
   scriptName: check.py
