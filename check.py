@@ -92,6 +92,8 @@ while True:
         flush=True
     )
 
+    send_message("🔔 Тестовое сообщение от бота")
+
     try:
 
         response = requests.get(
