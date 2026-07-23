@@ -1,13 +1,14 @@
 meta:
   version: "1"
-  environment: python
-  toolchain: python
+  toolchain:
+    name: python
+    version: "3.11"
+  environment:
+    python: "3.11"
 
 build:
   requirementsPath: requirements.txt
+  useCache: true
 
 run:
-  command: python check.py
-
-volumes:
-  - /data
+  scriptName: check.py
